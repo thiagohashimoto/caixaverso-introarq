@@ -53,6 +53,8 @@ public class CriarVendaService {
         VendaCriadaEvent event = new VendaCriadaEvent(
             venda.getId(),
             venda.getClienteId(),
+            produtoId,
+            quantidade,
             venda.getValorTotal()
         );
         eventPublisher.publishEvent(event);

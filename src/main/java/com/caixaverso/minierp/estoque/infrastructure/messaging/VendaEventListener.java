@@ -31,16 +31,20 @@ public class VendaEventListener {
     @Transactional
     public void aoVendaCriada(VendaCriadaEvent event) {
         try {
-            log.info("📦 Reservando estoque para venda: {}", event.getVendaId());
+            log.info("📦 Reservando estoque para venda: {} - Produto: {} - Quantidade: {}",
+                event.getVendaId(), event.getProdutoId(), event.getQuantidade());
 
-            // Nota: Em um cenário real, buscaríamos os itens da venda
-            // Para este exemplo, assumimos um único item
-            // Em produção, iteraríamos sobre todos os itens
+            // Reservar estoque através do Application Service
+            estoqueApplicationService.reservarEstoque(
+                event.getVendaId(),
+                event.getProdutoId(),
+                event.getQuantidade()
+            );
 
-            log.info("✅ Estoque processado para venda: {}", event.getVendaId());
+            log.info("✅ Estoque reservado com sucesso para venda: {}", event.getVendaId());
 
         } catch (Exception e) {
-            log.error("❌ Erro ao processar venda: {}", event.getVendaId(), e);
+            log.error("❌ Erro ao reservar estoque para venda: {}", event.getVendaId(), e);
             throw e;
         }
     }

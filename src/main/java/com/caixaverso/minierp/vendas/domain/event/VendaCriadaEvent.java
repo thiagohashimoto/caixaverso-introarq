@@ -25,13 +25,17 @@ public class VendaCriadaEvent implements DomainEvent {
     private String eventId;
     private Long vendaId;
     private Long clienteId;
+    private Long produtoId;
+    private Integer quantidade;
     private java.math.BigDecimal valorTotal;
     private LocalDateTime ocorridoEm;
 
-    public VendaCriadaEvent(Long vendaId, Long clienteId, java.math.BigDecimal valorTotal) {
+    public VendaCriadaEvent(Long vendaId, Long clienteId, Long produtoId, Integer quantidade, java.math.BigDecimal valorTotal) {
         this.eventId = UUID.randomUUID().toString();
         this.vendaId = vendaId;
         this.clienteId = clienteId;
+        this.produtoId = produtoId;
+        this.quantidade = quantidade;
         this.valorTotal = valorTotal;
         this.ocorridoEm = LocalDateTime.now();
     }
