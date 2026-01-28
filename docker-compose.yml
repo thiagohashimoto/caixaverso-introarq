@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # RabbitMQ para SAGA Pattern
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: caixaverso-rabbitmq
+    ports:
+      - "5672:5672"    # AMQP port
+      - "15672:15672"  # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - caixaverso-network
+
+  # PostgreSQL para persistência
+  postgres:
+    image: postgres:15-alpine
+    container_name: caixaverso-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: caixaverso
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - caixaverso-network
+
+  # pgAdmin para gerenciar banco
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: caixaverso-pgadmin
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    depends_on:
+      - postgres
+    networks:
+      - caixaverso-network
+
+volumes:
+  postgres_data:
+
+networks:
+  caixaverso-network:
+    driver: bridge
+
