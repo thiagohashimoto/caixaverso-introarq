@@ -2,11 +2,13 @@ package com.caixaverso.minierp.financeiro.api.controller;
 
 import com.caixaverso.minierp.financeiro.application.service.FinanceiroApplicationService;
 import com.caixaverso.minierp.financeiro.application.dto.CobrancaResponseDTO;
+import com.caixaverso.minierp.financeiro.application.dto.CriarCobrancaDTO;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
 
 /**
@@ -31,6 +33,23 @@ public class FinanceiroController {
     public ResponseEntity<List<CobrancaResponseDTO>> listar() {
         List<CobrancaResponseDTO> cobancas = financeiroApplicationService.listar();
         return ResponseEntity.ok(cobancas);
+    }
+
+    /**
+     * POST /financeiro/cobrancas
+     * Cria uma nova cobrança
+     *
+     * @param dto Dados para criação da cobrança
+     * @return Cobrança criada com status 201
+     */
+    @PostMapping
+    public ResponseEntity<CobrancaResponseDTO> criar(@RequestBody @Valid CriarCobrancaDTO dto) {
+        CobrancaResponseDTO cobranca = financeiroApplicationService.criarCobranca(
+            dto.getVendaId(),
+            dto.getClienteId(),
+            dto.getValor()
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(cobranca);
     }
 
     /**

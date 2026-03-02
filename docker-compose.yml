@@ -1,6 +1,62 @@
-version: '3.8'
-
 services:
+  # ============================================================
+  # NGINX - Reverse Proxy com Segurança e Performance
+  # ============================================================
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: caixaverso-nginx
+    ports:
+      - "80:80"      # HTTP - Reverse Proxy principal (req 3.1)
+      - "443:443"    # HTTPS - TLS simulado (req 4.3)
+    volumes:
+      - nginx_cache:/var/cache/nginx
+    depends_on:
+      - minierp
+    networks:
+      - caixaverso-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+
+  # ============================================================
+  # MINIERP - Aplicação Java Spring Boot
+  # ============================================================
+  minierp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: caixaverso-minierp
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/caixaverso
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin123
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_PROFILES_ACTIVE: prod
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - caixaverso-network
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
   # RabbitMQ para SAGA Pattern
   rabbitmq:
     image: rabbitmq:3.12-management
@@ -32,7 +88,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d caixaverso"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -55,6 +111,7 @@ services:
 
 volumes:
   postgres_data:
+  nginx_cache:
 
 networks:
   caixaverso-network:

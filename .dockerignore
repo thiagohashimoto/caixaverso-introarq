@@ -1,0 +1,43 @@
+# Git
+.git
+.gitignore
+.gitattributes
+.github
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build
+target/
+.mvn/wrapper/
+mvnw
+mvnw.cmd
+*.jar
+*.war
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+nginx/
+
+# Documentation
+*.md
+docs/
+
+# Logs
+*.log
+
+# Data
+data/
+test_output.log
+app_startup.log
+
+# Environment
+.env
+.env.example

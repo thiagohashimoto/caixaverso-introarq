@@ -43,7 +43,7 @@ public class CriarCobrancaService {
         // 3. Persistir
         cobrancaRepository.save(cobranca);
 
-        // 4. Publicar evento (continua SAGA)
+        // 4. Publicar evento
         CobrancaCriadaEvent event = new CobrancaCriadaEvent(
             cobranca.getId(),
             cobranca.getVendaId(),

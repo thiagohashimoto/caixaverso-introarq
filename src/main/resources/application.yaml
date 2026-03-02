@@ -82,3 +82,15 @@ caixaverso:
     enabled: true
     rate-limit: 100
     rate-limit-window-minutes: 1
+
+# Spring Actuator - expõe /actuator/health
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+

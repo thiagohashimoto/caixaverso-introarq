@@ -2,6 +2,8 @@ package com.caixaverso.minierp.financeiro.infrastructure.messaging;
 
 import com.caixaverso.minierp.estoque.domain.event.EstoqueReservadoEvent;
 import com.caixaverso.minierp.financeiro.application.service.FinanceiroApplicationService;
+import com.caixaverso.minierp.vendas.domain.repository.VendaRepository;
+import com.caixaverso.minierp.vendas.domain.model.Venda;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -26,18 +28,29 @@ import org.springframework.transaction.annotation.Transactional;
 public class EstoqueEventListener {
 
     private final FinanceiroApplicationService financeiroApplicationService;
+    private final VendaRepository vendaRepository;
 
     @EventListener
     @Transactional
     public void aoEstoqueReservado(EstoqueReservadoEvent event) {
         try {
-            log.info("💰 Criando cobrança para venda: {}", event.getVendaId());
+            log.info("💰 Criando cobrança para venda: {} - Produto: {} - Quantidade: {}",
+                event.getVendaId(), event.getProdutoId(), event.getQuantidade());
 
-            // Nota: Em um cenário real, buscaríamos o valor total da venda
-            // Para este exemplo, usamos um valor fictício
-            // Em produção, buscaria via VendaRepository
+            // Buscar venda para obter clienteId e valor total
+            Venda venda = vendaRepository.findById(event.getVendaId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                    "Venda não encontrada para ID: " + event.getVendaId()
+                ));
 
-            log.info("✅ Cobrança criada para venda: {}", event.getVendaId());
+            // Criar cobrança através do Application Service
+            financeiroApplicationService.criarCobranca(
+                event.getVendaId(),
+                venda.getClienteId(),
+                venda.getValorTotal()
+            );
+
+            log.info("✅ Cobrança criada com sucesso para venda: {}", event.getVendaId());
 
         } catch (Exception e) {
             log.error("❌ Erro ao criar cobrança para venda: {}", event.getVendaId(), e);
