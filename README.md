@@ -126,6 +126,7 @@ Na primeira execução o Maven fará download das dependências (~3 min). Após 
 | API via Nginx (HTTP) | http://localhost/api |
 | API via Nginx (HTTPS) | https://localhost/api |
 | Health Check Nginx | http://localhost/health |
+| Swagger UI | http://localhost/api/swagger-ui.html |
 | Actuator (requer auth) | http://localhost/api/actuator/health |
 | pgAdmin | http://localhost:5050 |
 | RabbitMQ Management | http://localhost:15672 |
@@ -154,7 +155,44 @@ docker compose up -d
 | PostgreSQL | admin | admin123 |
 | pgAdmin | admin@admin.com | admin |
 | RabbitMQ | guest | guest |
-| Nginx Basic Auth (Actuator/Swagger) | admin | admin123 |
+| Nginx Basic Auth (Actuator) | admin | admin123 |
+
+---
+
+## Autenticação — quais rotas exigem credenciais
+
+A autenticação é feita pelo **Nginx** (Basic Auth), não pelo Spring Boot. O Spring Boot em si permite todas as requisições — o controle de acesso está na camada de proxy.
+
+### Rotas que exigem `admin:admin123`
+
+| Rota | Método | Motivo |
+|------|--------|--------|
+| `/api/actuator/**` | GET | Expõe estado interno da JVM, conexões de banco, uso de memória e heap |
+
+```bash
+# Sem credenciais → 401 Unauthorized
+curl -si http://localhost/api/actuator/health
+
+# Com credenciais → 200 OK
+curl -si -u admin:admin123 http://localhost/api/actuator/health
+```
+
+### Rotas livres (sem autenticação)
+
+| Rota | Descrição |
+|------|-----------|
+| `GET /health` | Health check do próprio Nginx |
+| `GET /api/swagger-ui.html` | Swagger UI — redireciona para `/api/swagger-ui/index.html` |
+| `GET /api/swagger-ui/**` | Recursos do Swagger UI (JS, CSS, index) |
+| `GET /api/v3/api-docs/**` | JSON da especificação OpenAPI |
+| `GET /api/estoque/produtos` | Listar produtos |
+| `POST /api/estoque/produtos` | Criar produto |
+| `GET /api/vendas` | Listar vendas |
+| `POST /api/vendas` | Criar venda |
+| `GET /api/financeiro/cobrancas` | Listar cobranças |
+| `PUT /api/financeiro/cobrancas/{id}/pagar` | Registrar pagamento |
+
+> **Por que o Swagger não exige auth?** O Swagger UI é uma aplicação JavaScript que, após carregar a página HTML, executa requisições `fetch()` para buscar o `swagger-config` e o `api-docs`. O browser não propaga credenciais Basic Auth em requisições XHR subsequentes — forçar auth no Swagger quebraria o carregamento da interface. O que é sensível (estado interno, métricas) está protegido pelo Actuator.
 
 ---
 
@@ -231,6 +269,7 @@ GET http://localhost/health
 
 # Health check da aplicação (requer Basic Auth: admin / admin123)
 GET http://localhost/api/actuator/health
+Authorization: Basic YWRtaW46YWRtaW4xMjM=
 ```
 
 ---
@@ -243,7 +282,7 @@ GET http://localhost/api/actuator/health
 | Security Headers | `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection: 1; mode=block` |
 | Rate Limiting | 5 req/s por IP, burst=10 — retorna **429** ao exceder |
 | Limite de payload | `client_max_body_size 1m` — retorna **413** para requests > 1MB |
-| Basic Auth | `/api/actuator` e `/api/swagger-ui` protegidos com htpasswd |
+| Basic Auth | Apenas `/api/actuator/**` protegido com htpasswd (`admin:admin123`) |
 | HTTPS | TLS 1.2/1.3 com certificado autoassinado (porta 443) |
 | Ocultar versão | `server_tokens off` |
 
@@ -301,6 +340,7 @@ mvn spring-boot:run
 
 # Acesso direto (sem Nginx):
 # API:        http://localhost:8080/api
+# Swagger:    http://localhost:8080/api/swagger-ui.html
 # H2 Console: http://localhost:8080/api/h2-console
 #   JDBC URL: jdbc:h2:file:./data/caixaverso;MODE=PostgreSQL
 #   User: sa  /  Password: sa
@@ -325,5 +365,5 @@ caixaverso-introarq/
 
 ---
 
-**Versão**: 1.1.0  
+**Versão**: 1.2.0  
 **Atualizado**: 2026-03-02

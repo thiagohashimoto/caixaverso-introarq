@@ -39,7 +39,7 @@ spring:
   # Web - Content negotiation
   web:
     resources:
-      add-mappings: false
+      add-mappings: true
 
   # MVC
   mvc:
@@ -94,3 +94,15 @@ management:
     health:
       show-details: always
 
+# SpringDoc OpenAPI / Swagger UI
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    display-request-duration: true
+    disable-swagger-default-url: true
+  api-docs:
+    path: /v3/api-docs
+  show-actuator: false
+  packages-to-scan: com.caixaverso.minierp

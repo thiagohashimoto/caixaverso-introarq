@@ -30,8 +30,7 @@ spring:
     deserialization:
       fail-on-unknown-properties: false
 
-  # Jackson
-  jackson:
+server:
   port: 8080
   servlet:
     context-path: /api
@@ -75,3 +74,15 @@ caixaverso:
     rate-limit: 1000
     rate-limit-window-minutes: 1
 
+# SpringDoc OpenAPI / Swagger UI
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    display-request-duration: true
+    disable-swagger-default-url: true
+  api-docs:
+    path: /v3/api-docs
+  show-actuator: false
+  packages-to-scan: com.caixaverso.minierp
